@@ -27,12 +27,12 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', 'Noto Sans Gurmukhi', 'Noto Sans Devanagari', Arial, sans-serif; }
     body { background: var(--surface-bg); color: #1e293b; }
 
-    .navbar { background: var(--nav-bg); color: #fff; position: sticky; top: 0; z-index: 50; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.22); border-bottom: 1px solid rgba(255,255,255,0.12); }
-    .nav-inner { max-width: 1280px; margin: 0 auto; padding: 12px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-    .brand { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 4px; font-weight: 800; font-size: 1.12rem; letter-spacing: 0.4px; }
-    .brand-top { display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .brand-badge { background: linear-gradient(135deg, #10b981, #059669); color: #fff; padding: 3px 9px; border-radius: 6px; font-weight: 800; font-size: 0.82rem; box-shadow: 0 2px 6px rgba(16,185,129,0.4); }
-    .brand-sub { font-size: 0.74rem; font-weight: 500; color: #99f6e4; display: block; line-height: 1.2; text-align: center; }
+    .navbar { width: 100%; background: var(--nav-bg); color: #fff; position: sticky; top: 0; z-index: 50; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.22); border-bottom: 1px solid rgba(255,255,255,0.12); text-align: center; }
+    .nav-inner { width: 100%; max-width: 1280px; margin: 0 auto; padding: 14px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; }
+    .brand { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin: 0 auto; gap: 4px; font-weight: 800; font-size: 1.22rem; letter-spacing: 0.5px; }
+    .brand-top { width: 100%; display: flex; align-items: center; justify-content: center; text-align: center; gap: 8px; }
+    .brand-badge { background: linear-gradient(135deg, #10b981, #059669); color: #fff; padding: 3px 9px; border-radius: 6px; font-weight: 800; font-size: 0.84rem; box-shadow: 0 2px 6px rgba(16,185,129,0.4); }
+    .brand-sub { width: 100%; font-size: 0.76rem; font-weight: 500; color: #99f6e4; display: block; line-height: 1.25; text-align: center; }
     .menu { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; justify-content: center; }
     .menu-btn { background: rgba(255,255,255,0.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.18); padding: 6px 11px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: .81rem; transition: 0.18s; }
     .menu-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
@@ -112,14 +112,14 @@
   </style>
 </head>
 <body>
-  <header class="navbar">
-    <div class="nav-inner">
-      <div class="brand">
-        <div class="brand-top">
+  <header class="navbar" style="width:100%;text-align:center;">
+    <div class="nav-inner" style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+      <div class="brand" style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+        <div class="brand-top" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;">
           <span class="brand-badge">PRO</span>
           <span>DOCX STUDIO</span>
         </div>
-        <span class="brand-sub">All-in-One Image, Photo Retouch &amp; PDF Toolkit</span>
+        <span class="brand-sub" style="width:100%;text-align:center;">All-in-One Image, Photo Retouch &amp; PDF Toolkit</span>
       </div>
       <nav class="menu">
         <button class="menu-btn active" data-tab="resizer">Image Resizer</button>
@@ -2542,14 +2542,15 @@
 
       if (tool === 'zoom_area') {
         liveEditCanvas.style.cursor = 'crosshair';
-        document.getElementById('livePreviewCaption').textContent = 'Drag mouse over the area you want to zoom, then click Apply & Download:';
+        const zScale = parseFloat(document.getElementById('zoomScaleNum').value) || 2.5;
+        document.getElementById('livePreviewCaption').textContent = `Photo par mouse drag karke area select karein (Live ${zScale}x Zoom Preview + Apply & Download):`;
         lctx.drawImage(cachedMainImg, 0, 0, pw, ph);
         if (zoomSelectionNorm) {
           const rx = zoomSelectionNorm.x * pw;
           const ry = zoomSelectionNorm.y * ph;
           const rw = zoomSelectionNorm.w * pw;
           const rh = zoomSelectionNorm.h * ph;
-          lctx.fillStyle = 'rgba(15, 23, 42, 0.35)';
+          lctx.fillStyle = 'rgba(15, 23, 42, 0.38)';
           lctx.fillRect(0, 0, pw, ry);
           lctx.fillRect(0, ry + rh, pw, ph - (ry + rh));
           lctx.fillRect(0, ry, rx, rh);
@@ -2557,6 +2558,31 @@
           lctx.strokeStyle = '#10b981';
           lctx.lineWidth = 2.5;
           lctx.strokeRect(rx, ry, rw, rh);
+
+          // Live Magnifier Inset Preview in corner opposite selection
+          const sx = Math.max(0, Math.round(zoomSelectionNorm.x * cachedMainImg.width));
+          const sy = Math.max(0, Math.round(zoomSelectionNorm.y * cachedMainImg.height));
+          const sw = Math.max(8, Math.round(zoomSelectionNorm.w * cachedMainImg.width));
+          const sh = Math.max(8, Math.round(zoomSelectionNorm.h * cachedMainImg.height));
+          const boxMax = Math.round(Math.min(pw, ph) * 0.42);
+          const ratio = sw / sh;
+          const mw = ratio >= 1 ? boxMax : Math.max(60, Math.round(boxMax * ratio));
+          const mh = ratio >= 1 ? Math.max(60, Math.round(boxMax / ratio)) : boxMax;
+          const mx = (zoomSelectionNorm.x > 0.5) ? 10 : (pw - mw - 10);
+          const my = 10;
+          lctx.save();
+          lctx.fillStyle = '#ffffff';
+          lctx.fillRect(mx - 3, my - 3, mw + 6, mh + 6);
+          lctx.drawImage(cachedMainImg, sx, sy, sw, sh, mx, my, mw, mh);
+          lctx.strokeStyle = '#0f766e';
+          lctx.lineWidth = 2;
+          lctx.strokeRect(mx - 2, my - 2, mw + 4, mh + 4);
+          lctx.fillStyle = 'rgba(15, 118, 110, 0.9)';
+          lctx.fillRect(mx, my + mh - 18, mw, 18);
+          lctx.fillStyle = '#ffffff';
+          lctx.font = 'bold 11px sans-serif';
+          lctx.fillText(`Zoom ${zScale}x Preview`, mx + 6, my + mh - 5);
+          lctx.restore();
         }
       } else if (tool === 'ps_auto_retouch') {
         liveEditCanvas.style.cursor = document.getElementById('hairBrushToggle').checked ? 'cell' : 'default';
