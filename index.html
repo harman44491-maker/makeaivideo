@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mahadev AI Studio - Realistic Text-to-Video Generator</title>
+  <title>Mahadev AI Studio - Realistic Text-to-Video Generator (Up to 1 Min)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
     body { background: #0f172a; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; }
     header { background: #1e293b; padding: 16px 24px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
     .logo { font-weight: 800; font-size: 1.15rem; color: #38bdf8; }
-    .container { max-width: 860px; width: 100%; margin: 28px auto; padding: 0 16px; flex: 1; }
+    .container { max-width: 880px; width: 100%; margin: 28px auto; padding: 0 16px; flex: 1; }
     .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,.35); }
     h1 { font-size: 1.4rem; margin-bottom: 6px; }
     p.sub { color: #94a3b8; font-size: 0.9rem; margin-bottom: 20px; }
@@ -26,12 +26,15 @@
       cursor: pointer; transition: opacity .2s;
     }
     .btn:disabled { opacity: 0.55; cursor: not-allowed; }
-    .status { margin-top: 16px; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; font-size: 0.9rem; color: #38bdf8; display: none; }
+    .status { margin-top: 16px; padding: 14px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; font-size: 0.9rem; color: #38bdf8; display: none; line-height: 1.5; }
     .result { margin-top: 22px; text-align: center; display: none; }
     video { width: 100%; max-height: 460px; border-radius: 10px; border: 1px solid #475569; background: #000; }
+    .clips-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; text-align: left; }
+    .clip-card { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px; }
+    .clip-card video { max-height: 160px; margin-bottom: 6px; }
     .dl-btn {
       display: inline-block; margin-top: 12px; background: #10b981; color: #fff;
-      text-decoration: none; padding: 10px 22px; border-radius: 8px; font-weight: 700;
+      text-decoration: none; padding: 10px 22px; border-radius: 8px; font-weight: 700; font-size: 0.92rem;
     }
     .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
     .chip { background: #334155; color: #e2e8f0; border: none; padding: 6px 11px; border-radius: 16px; font-size: 0.8rem; cursor: pointer; }
@@ -41,15 +44,15 @@
 <body>
   <header>
     <div class="logo">MAHADEV AI VIDEO STUDIO</div>
-    <span style="font-size:0.82rem;color:#94a3b8;">Realistic Text-to-Video</span>
+    <span style="font-size:0.82rem;color:#94a3b8;">Realistic Text-to-Video (10s – 1 Min)</span>
   </header>
 
   <main class="container">
     <div class="card">
       <h1>Realistic AI Video Generator</h1>
-      <p class="sub">Apna scene describe karein aur realistic HD video (.mp4) banayein.</p>
+      <p class="sub">10 second se lekar 1 minute (60 sec) tak ki realistic AI video banayein.</p>
 
-      <label>Fal.ai API Key (fal.ai se free/pay-as-you-go key lein):</label>
+      <label>Fal.ai API Key (GitHub ya Gmail se login karke API Keys section se copy karein):</label>
       <input type="password" id="apiKey" placeholder="Enter your FAL_KEY here..." />
 
       <label>Quick Realistic Prompt Examples:</label>
@@ -80,10 +83,14 @@
           </select>
         </div>
         <div>
-          <label>Duration:</label>
+          <label>Video Duration (10s to 1 Min):</label>
           <select id="duration">
-            <option value="5">5 Seconds</option>
-            <option value="10">10 Seconds</option>
+            <option value="10" selected>10 Seconds (1 Scene)</option>
+            <option value="20">20 Seconds (2 Scenes Merged)</option>
+            <option value="30">30 Seconds (3 Scenes Merged)</option>
+            <option value="40">40 Seconds (4 Scenes Merged)</option>
+            <option value="50">50 Seconds (5 Scenes Merged)</option>
+            <option value="60">60 Seconds / 1 Minute (6 Scenes Merged)</option>
           </select>
         </div>
       </div>
@@ -93,9 +100,11 @@
       <div class="status" id="statusBox"></div>
 
       <div class="result" id="resultBox">
+        <h3 style="margin-bottom:10px;color:#38bdf8;" id="finalTitle">Final Complete Video</h3>
         <video id="outVideo" controls autoplay loop></video>
         <br />
-        <a id="dlLink" class="dl-btn" href="#" download="ai_realistic_video.mp4" target="_blank">Download MP4 Video</a>
+        <a id="dlLink" class="dl-btn" href="#" download="mahadev_ai_video.mp4" target="_blank">Download Complete Video</a>
+        <div id="individualClips" class="clips-grid"></div>
       </div>
     </div>
   </main>
@@ -105,72 +114,163 @@
       document.getElementById('prompt').value = txt;
     }
 
+    const sceneContinuations = [
+      "opening establishing shot, smooth cinematic camera movement",
+      "continuous next shot, slightly closer angle, natural motion progression",
+      "mid-scene dynamic tracking shot, rich realistic lighting and textures",
+      "detailed perspective shift, steady cinematic camera flow",
+      "dramatic atmospheric continuation, golden hour depth and realism",
+      "final concluding wide cinematic shot, smooth slow pull-back"
+    ];
+
+    async function generateSingle10sClip(key, model, promptText, ratio, sceneIndex, totalScenes, statusEl) {
+      statusEl.textContent = `Scene ${sceneIndex + 1} of ${totalScenes}: Request bheji ja rahi hai...`;
+      const subRes = await fetch(`https://queue.fal.run/${model}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Key ${key}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          prompt: promptText,
+          aspect_ratio: ratio,
+          duration: "10"
+        })
+      });
+
+      const subData = await subRes.json();
+      if (!subRes.ok) throw new Error(subData.detail || `Scene ${sceneIndex + 1} API failed`);
+
+      while (true) {
+        await new Promise(r => setTimeout(r, 4500));
+        const pollRes = await fetch(subData.status_url, {
+          headers: { 'Authorization': `Key ${key}` }
+        });
+        const pollData = await pollRes.json();
+        statusEl.textContent = `Scene ${sceneIndex + 1}/${totalScenes} Status: ${pollData.status}... (Har 10s scene ko ~60 sec lagte hain)`;
+
+        if (pollData.status === 'COMPLETED') {
+          const finalRes = await fetch(subData.response_url, {
+            headers: { 'Authorization': `Key ${key}` }
+          });
+          const finalData = await finalRes.json();
+          if (!finalData.video?.url) throw new Error(`Scene ${sceneIndex + 1} video URL missing`);
+          return finalData.video.url;
+        } else if (pollData.status === 'FAILED') {
+          throw new Error(`Scene ${sceneIndex + 1} generation fail ho gaya.`);
+        }
+      }
+    }
+
+    async function stitchVideosInBrowser(videoUrls, statusEl) {
+      statusEl.textContent = 'Sabhi 10-second clips ko ek single complete video mein merge kiya ja raha hai...';
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const vid = document.createElement('video');
+      vid.crossOrigin = 'anonymous';
+      vid.muted = true;
+      vid.playsInline = true;
+
+      // Load first video to set dimensions
+      vid.src = videoUrls[0];
+      await new Promise((res, rej) => { vid.onloadedmetadata = res; vid.onerror = rej; });
+      canvas.width = vid.videoWidth || 1280;
+      canvas.height = vid.videoHeight || 720;
+
+      const stream = canvas.captureStream(30);
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
+      const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 6000000 });
+      const chunks = [];
+      recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+
+      const stopped = new Promise(res => { recorder.onstop = res; });
+      recorder.start();
+
+      for (let i = 0; i < videoUrls.length; i++) {
+        statusEl.textContent = `Merging Clip ${i + 1} of ${videoUrls.length} into final video...`;
+        vid.src = videoUrls[i];
+        await new Promise((res, rej) => { vid.onloadeddata = res; vid.onerror = rej; });
+        await vid.play();
+
+        await new Promise(resolve => {
+          function drawFrame() {
+            if (vid.paused || vid.ended) {
+              resolve();
+              return;
+            }
+            ctx.drawImage(vid, 0, 0, canvas.width, canvas.height);
+            requestAnimationFrame(drawFrame);
+          }
+          drawFrame();
+        });
+      }
+
+      recorder.stop();
+      await stopped;
+      const mergedBlob = new Blob(chunks, { type: mimeType });
+      return URL.createObjectURL(mergedBlob);
+    }
+
     async function generateVideo() {
       const key = document.getElementById('apiKey').value.trim();
-      const prompt = document.getElementById('prompt').value.trim();
+      const basePrompt = document.getElementById('prompt').value.trim();
       const model = document.getElementById('model').value;
       const ratio = document.getElementById('ratio').value;
-      const duration = document.getElementById('duration').value;
+      const totalSeconds = parseInt(document.getElementById('duration').value) || 10;
+      const numClips = Math.max(1, Math.round(totalSeconds / 10));
 
       if (!key) return alert('Pehle apni Fal.ai API Key daalein.');
-      if (!prompt) return alert('Video ke liye prompt likhein.');
+      if (!basePrompt) return alert('Video ke liye prompt likhein.');
 
       const btn = document.getElementById('genBtn');
       const status = document.getElementById('statusBox');
       const result = document.getElementById('resultBox');
+      const clipsContainer = document.getElementById('individualClips');
 
       btn.disabled = true;
       result.style.display = 'none';
+      clipsContainer.innerHTML = '';
       status.style.display = 'block';
-      status.textContent = 'Request bheji ja rahi hai... AI server par video render hone mein 45–90 seconds lagte hain.';
 
       try {
-        // Submit job to Fal.ai Queue API
-        const subRes = await fetch(`https://queue.fal.run/${model}`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Key ${key}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            prompt: prompt,
-            aspect_ratio: ratio,
-            duration: duration
-          })
-        });
-
-        const subData = await subRes.json();
-        if (!subRes.ok) throw new Error(subData.detail || 'API request failed');
-
-        const statusUrl = subData.status_url;
-        const responseUrl = subData.response_url;
-
-        // Poll until video generation completes
-        while (true) {
-          await new Promise(r => setTimeout(r, 4000));
-          const pollRes = await fetch(statusUrl, {
-            headers: { 'Authorization': `Key ${key}` }
-          });
-          const pollData = await pollRes.json();
-          status.textContent = `Status: ${pollData.status}... Kripya intezar karein.`;
-
-          if (pollData.status === 'COMPLETED') {
-            const finalRes = await fetch(responseUrl, {
-              headers: { 'Authorization': `Key ${key}` }
-            });
-            const finalData = await finalRes.json();
-            const videoUrl = finalData.video?.url;
-            if (!videoUrl) throw new Error('Video URL nahi mila.');
-
-            document.getElementById('outVideo').src = videoUrl;
-            document.getElementById('dlLink').href = videoUrl;
-            result.style.display = 'block';
-            status.textContent = 'Video taiyar hai!';
-            break;
-          } else if (pollData.status === 'FAILED') {
-            throw new Error('Video generation fail ho gaya.');
-          }
+        const clipUrls = [];
+        for (let i = 0; i < numClips; i++) {
+          const scenePrompt = numClips === 1
+            ? basePrompt
+            : `${basePrompt}, ${sceneContinuations[i % sceneContinuations.length]}`;
+          const url = await generateSingle10sClip(key, model, scenePrompt, ratio, i, numClips, status);
+          clipUrls.push(url);
         }
+
+        const outVid = document.getElementById('outVideo');
+        const dlLink = document.getElementById('dlLink');
+
+        if (clipUrls.length === 1) {
+          outVid.src = clipUrls[0];
+          dlLink.href = clipUrls[0];
+          dlLink.download = 'mahadev_ai_10sec_video.mp4';
+          document.getElementById('finalTitle').textContent = 'Final 10-Second Realistic Video';
+        } else {
+          const mergedUrl = await stitchVideosInBrowser(clipUrls, status);
+          outVid.src = mergedUrl;
+          dlLink.href = mergedUrl;
+          dlLink.download = `mahadev_ai_${totalSeconds}sec_complete_video.webm`;
+          document.getElementById('finalTitle').textContent = `Final Complete ${totalSeconds}-Second Video (${numClips} Scenes Merged)`;
+
+          clipUrls.forEach((u, idx) => {
+            const div = document.createElement('div');
+            div.className = 'clip-card';
+            div.innerHTML = `
+              <div style="font-size:0.8rem;color:#94a3b8;margin-bottom:4px;">Part ${idx + 1} (10s MP4)</div>
+              <video src="${u}" controls></video>
+              <a href="${u}" download="part_${idx + 1}.mp4" target="_blank" style="color:#38bdf8;font-size:0.8rem;text-decoration:none;">Download Part ${idx + 1} (.mp4)</a>
+            `;
+            clipsContainer.appendChild(div);
+          });
+        }
+
+        result.style.display = 'block';
+        status.textContent = `Complete ${totalSeconds}-second video taiyar hai!`;
       } catch (err) {
         status.textContent = 'Error: ' + err.message;
       } finally {
