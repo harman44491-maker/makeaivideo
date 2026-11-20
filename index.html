@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mahadev AI Studio - Realistic Text-to-Video Generator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
+    body { background: #0f172a; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; }
+    header { background: #1e293b; padding: 16px 24px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: 800; font-size: 1.15rem; color: #38bdf8; }
+    .container { max-width: 860px; width: 100%; margin: 28px auto; padding: 0 16px; flex: 1; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,.35); }
+    h1 { font-size: 1.4rem; margin-bottom: 6px; }
+    p.sub { color: #94a3b8; font-size: 0.9rem; margin-bottom: 20px; }
+    label { display: block; font-size: 0.85rem; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; }
+    input, textarea, select {
+      width: 100%; background: #0f172a; border: 1px solid #475569; color: #fff;
+      padding: 11px 14px; border-radius: 8px; font-size: 0.95rem; margin-bottom: 16px;
+    }
+    textarea { min-height: 105px; resize: vertical; line-height: 1.45; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .btn {
+      width: 100%; background: linear-gradient(135deg, #0284c7, #2563eb); color: #fff;
+      border: none; padding: 13px; border-radius: 8px; font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: opacity .2s;
+    }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .status { margin-top: 16px; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; font-size: 0.9rem; color: #38bdf8; display: none; }
+    .result { margin-top: 22px; text-align: center; display: none; }
+    video { width: 100%; max-height: 460px; border-radius: 10px; border: 1px solid #475569; background: #000; }
+    .dl-btn {
+      display: inline-block; margin-top: 12px; background: #10b981; color: #fff;
+      text-decoration: none; padding: 10px 22px; border-radius: 8px; font-weight: 700;
+    }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .chip { background: #334155; color: #e2e8f0; border: none; padding: 6px 11px; border-radius: 16px; font-size: 0.8rem; cursor: pointer; }
+    .chip:hover { background: #0284c7; color: #fff; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">MAHADEV AI VIDEO STUDIO</div>
+    <span style="font-size:0.82rem;color:#94a3b8;">Realistic Text-to-Video</span>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <h1>Realistic AI Video Generator</h1>
+      <p class="sub">Apna scene describe karein aur realistic HD video (.mp4) banayein.</p>
+
+      <label>Fal.ai API Key (fal.ai se free/pay-as-you-go key lein):</label>
+      <input type="password" id="apiKey" placeholder="Enter your FAL_KEY here..." />
+
+      <label>Quick Realistic Prompt Examples:</label>
+      <div class="chips">
+        <button type="button" class="chip" onclick="setPrompt('Cinematic drone shot flying over golden mustard fields in Punjab at sunrise, warm sunlight, ultra realistic 4k, 35mm lens')">Punjab Fields Sunrise</button>
+        <button type="button" class="chip" onclick="setPrompt('Close-up realistic studio shot of a modern digital service center desk, laptop screen glowing, warm lighting, shallow depth of field')">Modern Office Desk</button>
+        <button type="button" class="chip" onclick="setPrompt('Slow motion rain drops falling on a bustling Indian street at night with neon reflections on wet asphalt, photorealistic, cinematic')">Rainy Night Street</button>
+      </div>
+
+      <label>Video Prompt (English mein detailed scene likhein):</label>
+      <textarea id="prompt" placeholder="Example: Cinematic slow motion video of a cup of hot masala chai steaming on a wooden table in morning sunlight, ultra realistic, 4k..."></textarea>
+
+      <div class="grid">
+        <div>
+          <label>AI Model:</label>
+          <select id="model">
+            <option value="fal-ai/kling-video/v1.6/standard/text-to-video">Kling 1.6 (Ultra Realistic Motion)</option>
+            <option value="fal-ai/minimax/video-01">MiniMax Hailuo (Cinematic Realism)</option>
+            <option value="fal-ai/luma-dream-machine">Luma Dream Machine (Smooth Physics)</option>
+          </select>
+        </div>
+        <div>
+          <label>Aspect Ratio:</label>
+          <select id="ratio">
+            <option value="16:9">16:9 (YouTube / Landscape)</option>
+            <option value="9:16">9:16 (Instagram Reels / Shorts)</option>
+            <option value="1:1">1:1 (Square Post)</option>
+          </select>
+        </div>
+        <div>
+          <label>Duration:</label>
+          <select id="duration">
+            <option value="5">5 Seconds</option>
+            <option value="10">10 Seconds</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn" id="genBtn" onclick="generateVideo()">Generate Realistic Video</button>
+
+      <div class="status" id="statusBox"></div>
+
+      <div class="result" id="resultBox">
+        <video id="outVideo" controls autoplay loop></video>
+        <br />
+        <a id="dlLink" class="dl-btn" href="#" download="ai_realistic_video.mp4" target="_blank">Download MP4 Video</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function setPrompt(txt) {
+      document.getElementById('prompt').value = txt;
+    }
+
+    async function generateVideo() {
+      const key = document.getElementById('apiKey').value.trim();
+      const prompt = document.getElementById('prompt').value.trim();
+      const model = document.getElementById('model').value;
+      const ratio = document.getElementById('ratio').value;
+      const duration = document.getElementById('duration').value;
+
+      if (!key) return alert('Pehle apni Fal.ai API Key daalein.');
+      if (!prompt) return alert('Video ke liye prompt likhein.');
+
+      const btn = document.getElementById('genBtn');
+      const status = document.getElementById('statusBox');
+      const result = document.getElementById('resultBox');
+
+      btn.disabled = true;
+      result.style.display = 'none';
+      status.style.display = 'block';
+      status.textContent = 'Request bheji ja rahi hai... AI server par video render hone mein 45–90 seconds lagte hain.';
+
+      try {
+        // Submit job to Fal.ai Queue API
+        const subRes = await fetch(`https://queue.fal.run/${model}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Key ${key}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            prompt: prompt,
+            aspect_ratio: ratio,
+            duration: duration
+          })
+        });
+
+        const subData = await subRes.json();
+        if (!subRes.ok) throw new Error(subData.detail || 'API request failed');
+
+        const statusUrl = subData.status_url;
+        const responseUrl = subData.response_url;
+
+        // Poll until video generation completes
+        while (true) {
+          await new Promise(r => setTimeout(r, 4000));
+          const pollRes = await fetch(statusUrl, {
+            headers: { 'Authorization': `Key ${key}` }
+          });
+          const pollData = await pollRes.json();
+          status.textContent = `Status: ${pollData.status}... Kripya intezar karein.`;
+
+          if (pollData.status === 'COMPLETED') {
+            const finalRes = await fetch(responseUrl, {
+              headers: { 'Authorization': `Key ${key}` }
+            });
+            const finalData = await finalRes.json();
+            const videoUrl = finalData.video?.url;
+            if (!videoUrl) throw new Error('Video URL nahi mila.');
+
+            document.getElementById('outVideo').src = videoUrl;
+            document.getElementById('dlLink').href = videoUrl;
+            result.style.display = 'block';
+            status.textContent = 'Video taiyar hai!';
+            break;
+          } else if (pollData.status === 'FAILED') {
+            throw new Error('Video generation fail ho gaya.');
+          }
+        }
+      } catch (err) {
+        status.textContent = 'Error: ' + err.message;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
