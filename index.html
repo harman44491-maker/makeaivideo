@@ -129,6 +129,7 @@
         <button class="menu-btn" data-tab="pdf-editor">PDF Editor (Text/Img)</button>
         <button class="menu-btn" data-tab="pdf-form">PDF Form Filler</button>
         <button class="menu-btn" data-tab="edit-join">Join, Edit &amp; Create</button>
+        <button class="menu-btn" data-tab="edit-join" onclick="setTimeout(()=>{document.getElementById('editToolSelect').value='zoom_area';updateEditToolUI();},10)">Select Area to Zoom</button>
       </nav>
     </div>
   </header>
@@ -2269,6 +2270,9 @@
       document.getElementById('psRemoveBgToggle').checked = true;
       document.getElementById('psBgStyleSelect').value = style;
       if (hexCol) document.getElementById('psBgCustomColor').value = hexCol;
+      if (v === 'zoom_area' && !zoomSelectionNorm) {
+        zoomSelectionNorm = { x: 0.25, y: 0.20, w: 0.50, h: 0.50 };
+      }
       updatePsBgControls();
       renderLiveEditPreview();
     }
@@ -2630,7 +2634,7 @@
       const f = e.target.files[0];
       cachedTransparentCutout = null;
       hairStrokes = [];
-      zoomSelectionNorm = null;
+      zoomSelectionNorm = { x: 0.25, y: 0.20, w: 0.50, h: 0.50 };
       if (!f) { cachedMainImg = null; renderLiveEditPreview(); return; }
       cachedMainImg = await loadImg(URL.createObjectURL(f));
       renderLiveEditPreview();
