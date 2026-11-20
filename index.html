@@ -3,35 +3,53 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mahadev AI Studio - Realistic Text-to-Video Generator (Up to 1 Min)</title>
+  <title>Mahadev AI & Free Promo Video Studio</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
     body { background: #0f172a; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; }
-    header { background: #1e293b; padding: 16px 24px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+    header { background: #1e293b; padding: 14px 24px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
     .logo { font-weight: 800; font-size: 1.15rem; color: #38bdf8; }
-    .container { max-width: 880px; width: 100%; margin: 28px auto; padding: 0 16px; flex: 1; }
-    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,.35); }
-    h1 { font-size: 1.4rem; margin-bottom: 6px; }
-    p.sub { color: #94a3b8; font-size: 0.9rem; margin-bottom: 20px; }
-    label { display: block; font-size: 0.85rem; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; }
-    input, textarea, select {
-      width: 100%; background: #0f172a; border: 1px solid #475569; color: #fff;
-      padding: 11px 14px; border-radius: 8px; font-size: 0.95rem; margin-bottom: 16px;
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tab-btn {
+      background: #0f172a; color: #cbd5e1; border: 1px solid #334155;
+      padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.88rem;
     }
-    textarea { min-height: 105px; resize: vertical; line-height: 1.45; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .tab-btn.active { background: #0284c7; color: #fff; border-color: #38bdf8; }
+
+    .container { max-width: 900px; width: 100%; margin: 24px auto; padding: 0 16px; flex: 1; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,.35); }
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    h1 { font-size: 1.38rem; margin-bottom: 6px; }
+    p.sub { color: #94a3b8; font-size: 0.9rem; margin-bottom: 18px; }
+    label { display: block; font-size: 0.85rem; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; }
+    input[type="text"], input[type="password"], input[type="file"], textarea, select {
+      width: 100%; background: #0f172a; border: 1px solid #475569; color: #fff;
+      padding: 10px 13px; border-radius: 8px; font-size: 0.93rem; margin-bottom: 15px;
+    }
+    input[type="color"] {
+      width: 100%; height: 42px; background: #0f172a; border: 1px solid #475569;
+      border-radius: 8px; padding: 3px; margin-bottom: 15px; cursor: pointer;
+    }
+    textarea { min-height: 95px; resize: vertical; line-height: 1.45; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); gap: 12px; }
+
     .btn {
       width: 100%; background: linear-gradient(135deg, #0284c7, #2563eb); color: #fff;
       border: none; padding: 13px; border-radius: 8px; font-size: 1rem; font-weight: 700;
       cursor: pointer; transition: opacity .2s;
     }
-    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
-    .status { margin-top: 16px; padding: 14px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; font-size: 0.9rem; color: #38bdf8; display: none; line-height: 1.5; }
+    .btn-green {
+      width: 100%; background: linear-gradient(135deg, #059669, #10b981); color: #fff;
+      border: none; padding: 13px; border-radius: 8px; font-size: 1rem; font-weight: 700;
+      cursor: pointer;
+    }
+    .btn:disabled, .btn-green:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .status { margin-top: 16px; padding: 13px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; font-size: 0.9rem; color: #38bdf8; display: none; line-height: 1.5; }
     .result { margin-top: 22px; text-align: center; display: none; }
     video { width: 100%; max-height: 460px; border-radius: 10px; border: 1px solid #475569; background: #000; }
-    .clips-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; text-align: left; }
-    .clip-card { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px; }
-    .clip-card video { max-height: 160px; margin-bottom: 6px; }
     .dl-btn {
       display: inline-block; margin-top: 12px; background: #10b981; color: #fff;
       text-decoration: none; padding: 10px 22px; border-radius: 8px; font-weight: 700; font-size: 0.92rem;
@@ -39,18 +57,99 @@
     .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
     .chip { background: #334155; color: #e2e8f0; border: none; padding: 6px 11px; border-radius: 16px; font-size: 0.8rem; cursor: pointer; }
     .chip:hover { background: #0284c7; color: #fff; }
+
+    .clips-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; text-align: left; }
+    .clip-card { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px; }
+    .clip-card video { max-height: 160px; margin-bottom: 6px; }
+    .badge-free { background: #10b981; color: #052e16; font-size: 0.72rem; padding: 2px 7px; border-radius: 10px; margin-left: 5px; font-weight: 800; }
+    footer { text-align: center; padding: 16px; color: #64748b; font-size: 0.82rem; }
   </style>
 </head>
 <body>
   <header>
     <div class="logo">MAHADEV AI VIDEO STUDIO</div>
-    <span style="font-size:0.82rem;color:#94a3b8;">Realistic Text-to-Video (10s – 1 Min)</span>
+    <div class="tabs">
+      <button type="button" class="tab-btn active" onclick="switchTab('free', this)">Free Promo Video Maker <span class="badge-free">NO API KEY</span></button>
+      <button type="button" class="tab-btn" onclick="switchTab('ai', this)">AI Text-to-Video (Fal.ai API)</button>
+    </div>
   </header>
 
   <main class="container">
-    <div class="card">
-      <h1>Realistic AI Video Generator</h1>
-      <p class="sub">10 second se lekar 1 minute (60 sec) tak ki realistic AI video banayein.</p>
+    <!-- TAB 1: 100% FREE ANIMATED PROMO & REEL VIDEO MAKER (NO API KEY NEEDED) -->
+    <section id="panel-free" class="card panel active">
+      <h1>100% Free Animated Promo &amp; Reel Video Maker</h1>
+      <p class="sub">Bina kisi API key ke images, text captions aur background audio se smooth animated video banayein.</p>
+
+      <div class="grid">
+        <div>
+          <label>1. Upload Photos / Posters (1 ya multiple images):</label>
+          <input type="file" id="freeImages" accept="image/*" multiple />
+        </div>
+        <div>
+          <label>2. Optional Background Music / Jingle (.mp3 / .wav):</label>
+          <input type="file" id="freeAudio" accept="audio/*" />
+        </div>
+      </div>
+
+      <label>Quick Shop / Service Promo Text Templates:</label>
+      <div class="chips">
+        <button type="button" class="chip" onclick="fillPromoPreset('MAHADEV NET CAFE & CSC\nAll Online Forms, PAN, Aadhaar & Passport Photo\nPrem Colony, Near CIA Staff, Patiala\nCall / WhatsApp: 8146244491')">Shop Service Promo</button>
+        <button type="button" class="chip" onclick="fillPromoPreset('NEW GOVERNMENT JOB ALERT\nApply Online Fast & Accurate\nBring Your Documents Today\nMahadev Net Cafe - 8146244491')">Govt Job Recruitment</button>
+        <button type="button" class="chip" onclick="fillPromoPreset('AYUSHMAN & HEALTH CARD\nInstant Print & Lamination Available\nVisit Mahadev Common Service Center\nContact: 8146244491')">Health Card Promo</button>
+      </div>
+
+      <label>3. Slide Text / Captions (Har nayi line ek slide par dikhegi):</label>
+      <textarea id="freeCaptions" placeholder="Line 1: Slide 1 ka text&#10;Line 2: Slide 2 ka text&#10;Line 3: Contact details..."></textarea>
+
+      <div class="grid">
+        <div>
+          <label>Video Size (Aspect Ratio):</label>
+          <select id="freeRatio">
+            <option value="9:16" selected>9:16 (Instagram Reels / WhatsApp Status)</option>
+            <option value="16:9">16:9 (YouTube / Landscape)</option>
+            <option value="1:1">1:1 (Instagram / Facebook Post)</option>
+          </select>
+        </div>
+        <div>
+          <label>Total Video Duration:</label>
+          <select id="freeDuration">
+            <option value="10">10 Seconds</option>
+            <option value="15" selected>15 Seconds</option>
+            <option value="20">20 Seconds</option>
+            <option value="30">30 Seconds</option>
+            <option value="45">45 Seconds</option>
+            <option value="60">60 Seconds (1 Minute)</option>
+          </select>
+        </div>
+        <div>
+          <label>Animation Style:</label>
+          <select id="freeMotion">
+            <option value="kenburns" selected>Smooth Zoom + Pan (Cinematic)</option>
+            <option value="zoomin">Steady Zoom In</option>
+            <option value="zoomout">Smooth Zoom Out</option>
+          </select>
+        </div>
+        <div>
+          <label>Text Box Accent Color:</label>
+          <input type="color" id="freeAccent" value="#0284c7" />
+        </div>
+      </div>
+
+      <button type="button" class="btn-green" id="freeGenBtn" onclick="generateFreePromoVideo()">Create 100% Free Animated Video</button>
+      <div class="status" id="freeStatus"></div>
+
+      <div class="result" id="freeResult">
+        <h3 style="margin-bottom:10px;color:#10b981;">Your Free Animated Promo Video is Ready!</h3>
+        <video id="freeOutVideo" controls autoplay loop></video>
+        <br />
+        <a id="freeDlLink" class="dl-btn" href="#" download="mahadev_promo_video.webm">Download Video</a>
+      </div>
+    </section>
+
+    <!-- TAB 2: AI TEXT-TO-VIDEO (WITH FAL.AI API KEY) -->
+    <section id="panel-ai" class="card panel">
+      <h1>Realistic AI Text-to-Video Generator (Cloud AI)</h1>
+      <p class="sub">10 second se lekar 1 minute (60 sec) tak ki realistic AI video banayein (Fal.ai API key ke saath).</p>
 
       <label>Fal.ai API Key (GitHub ya Gmail se login karke API Keys section se copy karein):</label>
       <input type="password" id="apiKey" placeholder="Enter your FAL_KEY here..." />
@@ -95,8 +194,7 @@
         </div>
       </div>
 
-      <button class="btn" id="genBtn" onclick="generateVideo()">Generate Realistic Video</button>
-
+      <button type="button" class="btn" id="genBtn" onclick="generateVideo()">Generate Realistic AI Video</button>
       <div class="status" id="statusBox"></div>
 
       <div class="result" id="resultBox">
@@ -106,14 +204,230 @@
         <a id="dlLink" class="dl-btn" href="#" download="mahadev_ai_video.mp4" target="_blank">Download Complete Video</a>
         <div id="individualClips" class="clips-grid"></div>
       </div>
-    </div>
+    </section>
   </main>
 
+  <footer>
+    Mahadev Net Cafe &amp; Common Service Center &bull; Prem Colony, Near CIA Staff, Patiala &bull; Contact: 8146244491
+  </footer>
+
   <script>
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + tab).classList.add('active');
+    }
+
+    function fillPromoPreset(txt) {
+      document.getElementById('freeCaptions').value = txt;
+    }
+
     function setPrompt(txt) {
       document.getElementById('prompt').value = txt;
     }
 
+    function loadFileAsImage(file) {
+      return new Promise((res, rej) => {
+        const img = new Image();
+        img.onload = () => res(img);
+        img.onerror = rej;
+        img.src = URL.createObjectURL(file);
+      });
+    }
+
+    function wrapTextLines(ctx, text, maxWidth) {
+      const words = text.split(/\s+/);
+      const lines = [];
+      let cur = '';
+      for (const w of words) {
+        const test = cur ? cur + ' ' + w : w;
+        if (ctx.measureText(test).width > maxWidth && cur) {
+          lines.push(cur);
+          cur = w;
+        } else {
+          cur = test;
+        }
+      }
+      if (cur) lines.push(cur);
+      return lines;
+    }
+
+    // ================= 100% FREE ANIMATED PROMO VIDEO ENGINE =================
+    async function generateFreePromoVideo() {
+      const imgFiles = Array.from(document.getElementById('freeImages').files);
+      const audioFile = document.getElementById('freeAudio').files[0];
+      const rawCaptions = document.getElementById('freeCaptions').value
+        .split('\n')
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      if (!imgFiles.length && !rawCaptions.length) {
+        return alert('Kam se kam ek image upload karein ya slide text likhein.');
+      }
+
+      const ratio = document.getElementById('freeRatio').value;
+      const totalSec = parseInt(document.getElementById('freeDuration').value) || 15;
+      const motion = document.getElementById('freeMotion').value;
+      const accent = document.getElementById('freeAccent').value;
+
+      const btn = document.getElementById('freeGenBtn');
+      const status = document.getElementById('freeStatus');
+      const result = document.getElementById('freeResult');
+
+      btn.disabled = true;
+      result.style.display = 'none';
+      status.style.display = 'block';
+      status.textContent = 'Images aur animations prepare ki ja rahi hain...';
+
+      try {
+        const images = await Promise.all(imgFiles.map(loadFileAsImage));
+        const slideCount = Math.max(images.length, rawCaptions.length, 1);
+
+        const dims = ratio === '9:16' ? [720, 1280] : ratio === '1:1' ? [1080, 1080] : [1280, 720];
+        const canvas = document.createElement('canvas');
+        canvas.width = dims[0];
+        canvas.height = dims[1];
+        const ctx = canvas.getContext('2d');
+
+        const fps = 30;
+        const totalFrames = totalSec * fps;
+        const framesPerSlide = totalFrames / slideCount;
+
+        const canvasStream = canvas.captureStream(fps);
+        let audioCtx = null, audioEl = null;
+
+        if (audioFile) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          audioEl = new Audio(URL.createObjectURL(audioFile));
+          audioEl.crossOrigin = 'anonymous';
+          audioEl.loop = true;
+          const srcNode = audioCtx.createMediaElementSource(audioEl);
+          const destNode = audioCtx.createMediaStreamDestination();
+          srcNode.connect(destNode);
+          destNode.stream.getAudioTracks().forEach(t => canvasStream.addTrack(t));
+        }
+
+        const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
+        const recorder = new MediaRecorder(canvasStream, { mimeType, videoBitsPerSecond: 5500000 });
+        const chunks = [];
+        recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+
+        const finished = new Promise(res => { recorder.onstop = res; });
+        recorder.start();
+        if (audioEl) await audioEl.play();
+
+        const bgGradients = [
+          ['#0f172a', '#1e3a8a'],
+          ['#111827', '#065f46'],
+          ['#1e1b4b', '#4c1d95'],
+          ['#1f2937', '#7c2d12']
+        ];
+
+        for (let frame = 0; frame < totalFrames; frame++) {
+          const slideIdx = Math.min(slideCount - 1, Math.floor(frame / framesPerSlide));
+          const localProgress = (frame % framesPerSlide) / framesPerSlide;
+
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          // Draw Image or Animated Gradient Background
+          if (images.length > 0) {
+            const img = images[slideIdx % images.length];
+            let scale = 1.0;
+            let panX = 0;
+            if (motion === 'kenburns') {
+              scale = 1.04 + localProgress * 0.12;
+              panX = (slideIdx % 2 === 0 ? -1 : 1) * (localProgress - 0.5) * 36;
+            } else if (motion === 'zoomin') {
+              scale = 1.0 + localProgress * 0.14;
+            } else if (motion === 'zoomout') {
+              scale = 1.14 - localProgress * 0.14;
+            }
+
+            const baseScale = Math.max(canvas.width / img.width, canvas.height / img.height) * scale;
+            const dw = img.width * baseScale;
+            const dh = img.height * baseScale;
+            const dx = (canvas.width - dw) / 2 + panX;
+            const dy = (canvas.height - dh) / 2;
+            ctx.drawImage(img, dx, dy, dw, dh);
+          } else {
+            const pair = bgGradients[slideIdx % bgGradients.length];
+            const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            grad.addColorStop(0, pair[0]);
+            grad.addColorStop(1, pair[1]);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Subtle animated light circle
+            ctx.fillStyle = 'rgba(255,255,255,0.06)';
+            ctx.beginPath();
+            ctx.arc(canvas.width * (0.2 + localProgress * 0.6), canvas.height * 0.35, canvas.width * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Smooth Fade Transition at slide start
+          if (localProgress < 0.12) {
+            ctx.fillStyle = `rgba(0,0,0,${(1 - localProgress / 0.12) * 0.65})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+          }
+
+          // Draw Animated Caption Banner if text provided
+          const caption = rawCaptions.length > 0 ? rawCaptions[slideIdx % rawCaptions.length] : '';
+          if (caption) {
+            const fontSize = Math.round(canvas.width * 0.048);
+            ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+            const lines = wrapTextLines(ctx, caption, canvas.width * 0.82);
+            const lineHeight = Math.round(fontSize * 1.32);
+            const boxH = lines.length * lineHeight + 44;
+            const slideUp = Math.min(1, localProgress / 0.18);
+            const boxY = images.length > 0
+              ? canvas.height - boxH - Math.round(canvas.height * 0.08) + (1 - slideUp) * 35
+              : (canvas.height - boxH) / 2 + (1 - slideUp) * 25;
+
+            ctx.save();
+            ctx.globalAlpha = slideUp;
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.84)';
+            ctx.fillRect(canvas.width * 0.06, boxY, canvas.width * 0.88, boxH);
+
+            // Accent bar on left
+            ctx.fillStyle = accent;
+            ctx.fillRect(canvas.width * 0.06, boxY, 10, boxH);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            lines.forEach((ln, idx) => {
+              ctx.fillText(ln, canvas.width / 2, boxY + 34 + idx * lineHeight);
+            });
+            ctx.restore();
+          }
+
+          if (frame % 15 === 0) {
+            const pct = Math.round((frame / totalFrames) * 100);
+            status.textContent = `Rendering Free Video: ${pct}% (${Math.ceil((totalFrames - frame) / fps)}s bache hain)...`;
+            await new Promise(r => setTimeout(r, 1000 / fps));
+          } else {
+            await new Promise(r => setTimeout(r, 1000 / fps));
+          }
+        }
+
+        recorder.stop();
+        if (audioEl) { audioEl.pause(); audioCtx.close(); }
+        await finished;
+
+        const blob = new Blob(chunks, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        document.getElementById('freeOutVideo').src = url;
+        document.getElementById('freeDlLink').href = url;
+        result.style.display = 'block';
+        status.textContent = `Complete! ${totalSec}-second animated promo video taiyar hai.`;
+      } catch (err) {
+        status.textContent = 'Error: ' + err.message;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // ================= CLOUD AI VIDEO ENGINE (FAL.AI) =================
     const sceneContinuations = [
       "opening establishing shot, smooth cinematic camera movement",
       "continuous next shot, slightly closer angle, natural motion progression",
@@ -127,15 +441,8 @@
       statusEl.textContent = `Scene ${sceneIndex + 1} of ${totalScenes}: Request bheji ja rahi hai...`;
       const subRes = await fetch(`https://queue.fal.run/${model}`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Key ${key}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          prompt: promptText,
-          aspect_ratio: ratio,
-          duration: "10"
-        })
+        headers: { 'Authorization': `Key ${key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: promptText, aspect_ratio: ratio, duration: "10" })
       });
 
       const subData = await subRes.json();
@@ -143,16 +450,12 @@
 
       while (true) {
         await new Promise(r => setTimeout(r, 4500));
-        const pollRes = await fetch(subData.status_url, {
-          headers: { 'Authorization': `Key ${key}` }
-        });
+        const pollRes = await fetch(subData.status_url, { headers: { 'Authorization': `Key ${key}` } });
         const pollData = await pollRes.json();
-        statusEl.textContent = `Scene ${sceneIndex + 1}/${totalScenes} Status: ${pollData.status}... (Har 10s scene ko ~60 sec lagte hain)`;
+        statusEl.textContent = `Scene ${sceneIndex + 1}/${totalScenes} Status: ${pollData.status}...`;
 
         if (pollData.status === 'COMPLETED') {
-          const finalRes = await fetch(subData.response_url, {
-            headers: { 'Authorization': `Key ${key}` }
-          });
+          const finalRes = await fetch(subData.response_url, { headers: { 'Authorization': `Key ${key}` } });
           const finalData = await finalRes.json();
           if (!finalData.video?.url) throw new Error(`Scene ${sceneIndex + 1} video URL missing`);
           return finalData.video.url;
@@ -171,7 +474,6 @@
       vid.muted = true;
       vid.playsInline = true;
 
-      // Load first video to set dimensions
       vid.src = videoUrls[0];
       await new Promise((res, rej) => { vid.onloadedmetadata = res; vid.onerror = rej; });
       canvas.width = vid.videoWidth || 1280;
@@ -187,17 +489,14 @@
       recorder.start();
 
       for (let i = 0; i < videoUrls.length; i++) {
-        statusEl.textContent = `Merging Clip ${i + 1} of ${videoUrls.length} into final video...`;
+        statusEl.textContent = `Merging Clip ${i + 1} of ${videoUrls.length}...`;
         vid.src = videoUrls[i];
         await new Promise((res, rej) => { vid.onloadeddata = res; vid.onerror = rej; });
         await vid.play();
 
         await new Promise(resolve => {
           function drawFrame() {
-            if (vid.paused || vid.ended) {
-              resolve();
-              return;
-            }
+            if (vid.paused || vid.ended) { resolve(); return; }
             ctx.drawImage(vid, 0, 0, canvas.width, canvas.height);
             requestAnimationFrame(drawFrame);
           }
@@ -207,8 +506,7 @@
 
       recorder.stop();
       await stopped;
-      const mergedBlob = new Blob(chunks, { type: mimeType });
-      return URL.createObjectURL(mergedBlob);
+      return URL.createObjectURL(new Blob(chunks, { type: mimeType }));
     }
 
     async function generateVideo() {
@@ -235,9 +533,7 @@
       try {
         const clipUrls = [];
         for (let i = 0; i < numClips; i++) {
-          const scenePrompt = numClips === 1
-            ? basePrompt
-            : `${basePrompt}, ${sceneContinuations[i % sceneContinuations.length]}`;
+          const scenePrompt = numClips === 1 ? basePrompt : `${basePrompt}, ${sceneContinuations[i % sceneContinuations.length]}`;
           const url = await generateSingle10sClip(key, model, scenePrompt, ratio, i, numClips, status);
           clipUrls.push(url);
         }
