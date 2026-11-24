@@ -130,6 +130,7 @@
         <button class="menu-btn" data-tab="pdf-form">PDF Form Filler</button>
         <button class="menu-btn" data-tab="edit-join">Join, Edit &amp; Create</button>
         <button class="menu-btn" data-tab="edit-join" onclick="setTimeout(()=>{document.getElementById('editToolSelect').value='zoom_area';updateEditToolUI();},10)">Select Area to Zoom</button>
+        <button class="menu-btn" data-tab="ai-video">&#127916; AI Video (Google Flow)</button>
       </nav>
     </div>
   </header>
@@ -679,6 +680,53 @@
       <div id="editStatus" class="status-note hidden"></div>
       <div class="output-area" id="editOutput"></div>
     </section>
+
+    <!-- TAB: AI VIDEO — GOOGLE FLOW / GEMINI HANDOFF -->
+    <section id="tab-ai-video" class="panel">
+      <h1>AI Video &mdash; Google Flow / Veo (Best Quality)</h1>
+      <p style="text-align:center;font-size:.88rem;color:#475569;max-width:680px;margin:0 auto 14px;">
+        Scene prompt likho, duration + aspect choose karo, phir button dabao. Prompt copy ho jayega aur Google Flow (ya Gemini) khul jayega &mdash; video wahi banegi. Flow ke liye Google AI plan/account chahiye.
+      </p>
+
+      <div class="inputs-row">
+        <label>Duration:
+          <select id="flowDuration">
+            <option value="8" selected>8 second (best &mdash; Extend se lambi kar sakte hain)</option>
+            <option value="6">6 second</option>
+            <option value="4">4 second</option>
+            <option value="10">10 second (Gemini Omni)</option>
+          </select>
+        </label>
+        <label>Aspect Ratio:
+          <select id="flowAspect">
+            <option value="16:9" selected>16:9 &mdash; Landscape / YouTube</option>
+            <option value="9:16">9:16 &mdash; Reels / Shorts</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="canvas-box">
+        <label for="flowPrompt" style="display:block;font-weight:700;font-size:.88rem;margin-bottom:6px;">Scene prompt &mdash; video me kya dikhana hai?</label>
+        <textarea id="flowPrompt" rows="5" placeholder="jaise: cinematic slow-motion shot of a woman walking through a neon-lit street at night, soft rain, realistic lighting, smooth camera movement"></textarea>
+      </div>
+
+      <div class="presets-row">
+        <button type="button" class="chip flow-preset" data-preset="Cinematic product shot of a luxury perfume bottle on a dark reflective surface, slow camera push-in, dramatic soft lighting, ultra realistic, shallow depth of field">Cinematic Product</button>
+        <button type="button" class="chip flow-preset" data-preset="Breathtaking aerial drone shot over green mountains and a misty lake at sunrise, golden light, smooth forward motion, cinematic color grading">Nature / Travel</button>
+        <button type="button" class="chip flow-preset" data-preset="Close-up portrait of a confident person speaking to camera in a modern studio, natural expression, soft key light, subtle background blur, realistic">Portrait Talk</button>
+        <button type="button" class="chip flow-preset" data-preset="Fashion reel, stylish outfit transition in a bright modern studio, smooth camera motion, natural colors, elegant and realistic">Fashion Reel</button>
+      </div>
+
+      <div class="controls-row">
+        <button type="button" class="btn-green" id="flowOpenBtn">&#128640; Open in Google Flow</button>
+        <button type="button" class="btn-blue" id="flowGeminiBtn">&#127760; Open in Gemini</button>
+      </div>
+      <div id="flowStatus" class="status-note hidden"></div>
+      <div id="flowPromptBox" class="status-note hidden" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;word-break:break-word;font-weight:500;"></div>
+      <p style="text-align:center;font-size:.8rem;color:#64748b;">
+        Ek generation me 4&ndash;8 second (Omni me 10s). 8s clip ko Flow me <b>Extend</b> karke 1 minute+ ka video banaya ja sakta hai.
+      </p>
+    </section>
   </main>
 
   <script>
@@ -820,6 +868,86 @@
         document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
       });
     });
+
+    // ================= AI VIDEO: GOOGLE FLOW / GEMINI HANDOFF =================
+    function flowSetStatus(msg, isErr) {
+      const s = document.getElementById('flowStatus');
+      if (!s) return;
+      s.textContent = msg || '';
+      s.classList.remove('hidden');
+      s.style.color = isErr ? '#dc2626' : '#0f766e';
+    }
+    function flowFallbackCopy(text) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand('copy');
+        ta.remove();
+        return ok;
+      } catch (e) { return false; }
+    }
+    function flowCopy(text) {
+      return new Promise(resolve => {
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(text).then(() => resolve(true)).catch(() => resolve(flowFallbackCopy(text)));
+        } else {
+          resolve(flowFallbackCopy(text));
+        }
+      });
+    }
+    function flowShowPrompt(text) {
+      const box = document.getElementById('flowPromptBox');
+      box.innerHTML = '';
+      const t = document.createElement('div');
+      t.textContent = text;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.style.marginTop = '8px';
+      b.textContent = '📋 Copy Prompt';
+      b.addEventListener('click', () => flowCopy(text));
+      box.appendChild(t);
+      box.appendChild(b);
+      box.classList.remove('hidden');
+    }
+    function flowBuildText() {
+      const input = document.getElementById('flowPrompt');
+      const scene = (input.value || '').trim();
+      if (!scene) {
+        flowSetStatus('Scene prompt likho pehle.', true);
+        input.focus();
+        return null;
+      }
+      const duration = document.getElementById('flowDuration').value;
+      const aspect = document.getElementById('flowAspect').value;
+      return `Create a ${duration}-second cinematic video in ${aspect} aspect ratio. ${scene} Keep motion smooth, lighting natural, details sharp and the scene consistent from start to finish. No text overlays or logos unless requested.`;
+    }
+    function videoHandoff(url, name) {
+      const text = flowBuildText();
+      if (!text) return;
+      const tab = window.open(url, '_blank');
+      if (!tab) flowSetStatus('Popup block ho gaya — is site ke liye popup allow karo.', true);
+      flowCopy(text).then(ok => {
+        flowSetStatus(ok
+          ? `✅ Prompt copy ho gaya. ${name} khul gaya — prompt paste karke video banao.`
+          : `✅ ${name} khul gaya. Neeche wala prompt copy karke paste karo.`);
+        flowShowPrompt(text);
+      });
+    }
+    if (document.getElementById('flowOpenBtn')) {
+      document.getElementById('flowOpenBtn').addEventListener('click', () => videoHandoff('https://flow.google.com/', 'Google Flow'));
+      document.getElementById('flowGeminiBtn').addEventListener('click', () => videoHandoff('https://gemini.google.com/app?hl=en', 'Gemini'));
+      document.querySelectorAll('.flow-preset').forEach(b => {
+        b.addEventListener('click', () => {
+          document.getElementById('flowPrompt').value = b.dataset.preset;
+          document.getElementById('flowPrompt').focus();
+        });
+      });
+    }
 
     function loadImg(src) {
       return new Promise((res, rej) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = rej; i.src = src; });
